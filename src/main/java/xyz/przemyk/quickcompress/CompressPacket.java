@@ -3,6 +3,7 @@ package xyz.przemyk.quickcompress;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.ResultSlot;
@@ -58,7 +59,7 @@ public class CompressPacket {
                         }
                         Recipe<?> recipe = compressItem(itemStack, totalCountToCompress, sender).orElse(null);
                         if (recipe != null) {
-                            ItemStack recipeOutput = recipe.getResultItem().copy();
+                            ItemStack recipeOutput = recipe.getResultItem(RegistryAccess.EMPTY).copy();
                             int outputCount = recipeOutput.getCount() * totalCountToCompress / 9;
                             recipeOutput.setCount(outputCount);
                             int totalCountToTake = totalCountToCompress - (totalCountToCompress % 9);
@@ -78,7 +79,7 @@ public class CompressPacket {
                             if (slot.mayPickup(sender) && !(slot instanceof ResultSlot)) {
                                 ItemStack itemStack = slot.getItem();
                                 compressItem(itemStack, itemStack.getCount(), sender).ifPresent(recipe -> {
-                                    ItemStack recipeOutput = recipe.getResultItem();
+                                    ItemStack recipeOutput = recipe.getResultItem(RegistryAccess.EMPTY);
                                     ItemStack output = new ItemStack(recipeOutput.getItem(), recipeOutput.getCount() * itemStack.getCount() / 9);
                                     slot.safeTake(itemStack.getCount() - (itemStack.getCount() % 9), Integer.MAX_VALUE, sender);
                                     if (sender.containerMenu.getCarried().isEmpty()) {
@@ -98,7 +99,7 @@ public class CompressPacket {
 
     private Optional<Recipe<?>> compressItem(ItemStack itemStack, int count, ServerPlayer sender) {
         if (count >= 9) {
-            return sender.level.getRecipeManager().getRecipes().stream().filter(
+            return sender.level().getRecipeManager().getRecipes().stream().filter(
                     recipe -> {
                         if (recipe.getType() == RecipeType.CRAFTING) {
                             NonNullList<Ingredient> ingredients = recipe.getIngredients();

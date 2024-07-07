@@ -28,14 +28,11 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onKeyPressed(ScreenEvent.KeyPressed.Pre event) {
-        Minecraft minecraft = Minecraft.getInstance();
         if (compressKey.getKey().getValue() == event.getKeyCode()) {
             if (event.getScreen() instanceof AbstractContainerScreen<?> containerScreen) {
-                double xPos = minecraft.mouseHandler.xpos() * minecraft.getWindow().getGuiScaledWidth() / minecraft.getWindow().getScreenWidth();
-                double yPos = minecraft.mouseHandler.ypos() * minecraft.getWindow().getGuiScaledHeight() / minecraft.getWindow().getScreenHeight();
-                Slot slot = containerScreen.findSlot(xPos, yPos);
+                Slot slot = containerScreen.getSlotUnderMouse();
                 if (slot != null && slot.hasItem()) {
-                    CompressPacketHandler.INSTANCE.sendToServer(new CompressPacket(slot.index));
+                    CompressPacketHandler.INSTANCE.sendToServer(new CompressPacket(slot.getContainerSlot()));
                     event.setCanceled(true);
                 }
             }
